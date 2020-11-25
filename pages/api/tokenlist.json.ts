@@ -40,8 +40,8 @@ const handler = async (_req: NextApiRequest, res: NextApiResponse) => {
   const normalTokens = data.wrapped777S.map((token: any) => ({
     chainId: 42,
     address: token.underlyingAddress,
-    symbol: token.underlyingSymbol,
-    name: token.underlyingName,
+    symbol: token.underlyingSymbol || 'UNKNOWN',
+    name: token.underlyingName || 'UNKNOWN',
     decimals: 18,
     logoURI: "https://raw.githubusercontent.com/Synthetixio/synthetix-assets/v2.0.3/snx/SNX.svg",
     tags: ["erc20"],
