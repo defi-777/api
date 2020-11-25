@@ -1,6 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 
 const handler = async (_req: NextApiRequest, res: NextApiResponse) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+
   const request = await fetch('https://api.thegraph.com/subgraphs/name/defi-777/kovan', {
     method: 'POST',
     headers: {
