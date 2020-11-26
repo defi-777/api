@@ -1,4 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next'
+import { toChecksumAddress } from 'ethereum-checksum-address'
 
 const handler = async (_req: NextApiRequest, res: NextApiResponse) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -29,7 +30,7 @@ const handler = async (_req: NextApiRequest, res: NextApiResponse) => {
 
   const wrapperTokens = data.wrapped777S.map((token: any) => ({
     chainId: 42,
-    address: token.id,
+    address: toChecksumAddress(token.id),
     symbol: `${token.underlyingSymbol}777`,
     name: `${token.underlyingName}-777`,
     decimals: 18,
@@ -39,7 +40,7 @@ const handler = async (_req: NextApiRequest, res: NextApiResponse) => {
 
   const normalTokens = data.wrapped777S.map((token: any) => ({
     chainId: 42,
-    address: token.underlyingAddress,
+    address: toChecksumAddress(token.underlyingAddress),
     symbol: token.underlyingSymbol || 'UNKNOWN',
     name: token.underlyingName || 'UNKNOWN',
     decimals: 18,
