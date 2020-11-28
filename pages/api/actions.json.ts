@@ -75,7 +75,13 @@ const handler = async (_req: NextApiRequest, res: NextApiResponse) => {
         id: 'aave',
         name: 'Aave Lending',
         description: 'Lend your tokens and earn interest',
-        adapters: [],
+        adapters: [
+          {
+            address: '0x9a2298ADd991c04bA344bf3fe27194139A7Ab8f8',
+            name: 'Aave',
+            symbol: 'Aave',
+          },
+        ],
       },
     ],
   })
