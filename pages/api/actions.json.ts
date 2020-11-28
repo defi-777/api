@@ -60,14 +60,22 @@ const handler = async (_req: NextApiRequest, res: NextApiResponse) => {
   res.json({
     actions: [
       {
+        id: 'uniswap',
         name: 'Uniswap',
         description: 'Swap for other tokens',
         adapters: uniswapAdapters,
       },
       {
+        id: 'uniswap-pool',
         name: 'Uniswap Pools',
         description: 'Provide liquidity & earn trading fees',
         adapters: uniswapPoolAdapters,
+      },
+      {
+        id: 'aave',
+        name: 'Aave Lending',
+        description: 'Lend your tokens and earn interest',
+        adapters: [],
       },
     ],
   })
