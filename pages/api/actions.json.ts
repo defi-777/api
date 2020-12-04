@@ -83,6 +83,19 @@ const handler = async (_req: NextApiRequest, res: NextApiResponse) => {
           },
         ],
       },
+      {
+        id: 'unwrap',
+        name: 'Unwrap',
+        description: 'Convert DeFi777 tokens back to ERC20 tokens',
+        includeTag: 'erc777',
+        adapters: [
+          {
+            address: '0x6199F21467853Bea01187C5f093e37B0A578157f',
+            name: 'Unwrap',
+            symbol: 'Unwrap',
+          },
+        ],
+      },
     ],
   })
 }
