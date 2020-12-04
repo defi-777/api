@@ -54,7 +54,7 @@ const handler = async (_req: NextApiRequest, res: NextApiResponse) => {
       address: toChecksumAddress(id),
       outputWrapper: toChecksumAddress(outputPoolWrapper.id),
       name: `Uniswap ${outputPoolWrapper.token0Name}-${outputPoolWrapper.token1Name} Pool`.replace('Wrapped Ether', 'Ether'),
-      symbol: `UNI-${outputPoolWrapper.token0Symbol}/${outputPoolWrapper.token1Symbol}`.replace('WETH', 'ETH'),
+      symbol: `${outputPoolWrapper.token0Symbol}-${outputPoolWrapper.token1Symbol}`.replace('WETH', 'ETH'),
     }))
 
   res.json({
