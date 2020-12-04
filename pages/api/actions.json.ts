@@ -80,7 +80,7 @@ const handler = async (_req: NextApiRequest, res: NextApiResponse) => {
         excludeTag: 'erc20',
         adapters: [
           {
-            address: '0x9a2298ADd991c04bA344bf3fe27194139A7Ab8f8',
+            address: '0xcA5587f03bbC142aB230075E6CA2EaC3768a52Af',
             name: 'Aave',
             symbol: 'Aave',
           },
