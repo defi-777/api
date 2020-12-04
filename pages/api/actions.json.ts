@@ -63,18 +63,21 @@ const handler = async (_req: NextApiRequest, res: NextApiResponse) => {
         id: 'uniswap',
         name: 'Uniswap',
         description: 'Swap for other tokens',
+        excludeTag: 'erc20',
         adapters: uniswapAdapters,
       },
       {
         id: 'uniswap-pool',
         name: 'Uniswap Pools',
         description: 'Provide liquidity & earn trading fees',
+        excludeTag: 'erc20',
         adapters: uniswapPoolAdapters,
       },
       {
         id: 'aave',
         name: 'Aave Lending',
         description: 'Lend your tokens and earn interest',
+        excludeTag: 'erc20',
         adapters: [
           {
             address: '0x9a2298ADd991c04bA344bf3fe27194139A7Ab8f8',
