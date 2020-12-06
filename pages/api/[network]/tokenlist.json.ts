@@ -1,35 +1,25 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { toChecksumAddress } from 'ethereum-checksum-address'
+import { gqlQuery } from 'lib/graph'
+import { getNetworkId } from 'lib/networks'
 
-const handler = async (_req: NextApiRequest, res: NextApiResponse) => {
+const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
 
-  const request = await fetch('https://api.thegraph.com/subgraphs/name/defi-777/kovan', {
-    method: 'POST',
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      query: `
-      query {
-        wrapped777S {
-          id
-          underlyingAddress
-          underlyingName
-          underlyingSymbol
-        }
-      }`,
-      variables: null,
-    }),
-  })
+  const data = await gqlQuery(req.query.network, `
+    query {
+      wrapped777S {
+        id
+        underlyingAddress
+        underlyingName
+        underlyingSymbol
+      }
+    }`)
 
-  const { data, errors } = await request.json()
-  if (errors) {
-    return res.status(500).json({ errors })
-  }
+  const chainId = getNetworkId(req.query.network)
 
   const wrapperTokens = data.wrapped777S.map((token: any) => ({
-    chainId: 42,
+    chainId,
     address: toChecksumAddress(token.id),
     symbol: `${token.underlyingSymbol}777`,
     name: `${token.underlyingName}-777`,
@@ -39,7 +29,7 @@ const handler = async (_req: NextApiRequest, res: NextApiResponse) => {
   }))
 
   const normalTokens = data.wrapped777S.map((token: any) => ({
-    chainId: 42,
+    chainId,
     address: toChecksumAddress(token.underlyingAddress),
     symbol: token.underlyingSymbol || 'UNKNOWN',
     name: token.underlyingName || 'UNKNOWN',

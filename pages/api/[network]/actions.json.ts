@@ -1,43 +1,30 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { toChecksumAddress } from 'ethereum-checksum-address'
+import { gqlQuery } from 'lib/graph'
 
-const handler = async (_req: NextApiRequest, res: NextApiResponse) => {
+const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   res.setHeader("Access-Control-Allow-Origin", "*")
 
-  const request = await fetch('https://api.thegraph.com/subgraphs/name/defi-777/kovan', {
-    method: 'POST',
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      query: `
-      query {
-        uniswapAdapters {
+  const data = await gqlQuery(req.query.network, `
+    query {
+      uniswapAdapters {
+        id
+        outputWrapper {
           id
-          outputWrapper {
-            id
-            underlyingName
-            underlyingSymbol
-          }
-          outputPoolWrapper {
-            id
-            token0Name
-            token0Symbol
-            token0Address
-            token1Name
-            token1Symbol
-            token1Address
-          }
+          underlyingName
+          underlyingSymbol
         }
-      }`,
-      variables: null,
-    }),
-  })
-
-  const { data, errors } = await request.json()
-  if (errors) {
-    return res.status(500).json({ errors })
-  }
+        outputPoolWrapper {
+          id
+          token0Name
+          token0Symbol
+          token0Address
+          token1Name
+          token1Symbol
+          token1Address
+        }
+      }
+    }`)
 
   const uniswapAdapters = data.uniswapAdapters
     .filter((adapter: any) => !adapter.outputPoolWrapper)
