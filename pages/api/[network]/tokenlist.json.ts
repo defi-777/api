@@ -6,7 +6,7 @@ import { getNetworkId } from 'lib/networks'
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
 
-  const data = await gqlQuery(req.query.network, `
+  const data = await gqlQuery(req.query.network as string, `
     query {
       wrapped777S {
         id
@@ -16,7 +16,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       }
     }`)
 
-  const chainId = getNetworkId(req.query.network)
+  const chainId = getNetworkId(req.query.network as string)
 
   const wrapperTokens = data.wrapped777S.map((token: any) => ({
     chainId,

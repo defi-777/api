@@ -5,7 +5,7 @@ import { gqlQuery } from 'lib/graph'
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   res.setHeader("Access-Control-Allow-Origin", "*")
 
-  const data = await gqlQuery(req.query.network, `
+  const data = await gqlQuery(req.query.network as string, `
     query {
       uniswapAdapters {
         id
