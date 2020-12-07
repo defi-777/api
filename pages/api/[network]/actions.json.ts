@@ -7,27 +7,21 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
   const data = await gqlQuery(req.query.network as string, `
     query {
-      uniswapAdapters {
+      adapters {
         id
+        protocol
         outputWrapper {
           id
           underlyingName
           underlyingSymbol
-        }
-        outputPoolWrapper {
-          id
-          token0Name
-          token0Symbol
-          token0Address
-          token1Name
-          token1Symbol
-          token1Address
+          poolTokenSymbols
+          poolTokenNames
         }
       }
     }`)
 
-  const uniswapAdapters = data.uniswapAdapters
-    .filter((adapter: any) => !adapter.outputPoolWrapper)
+  const uniswapAdapters = data.adapters
+    .filter((adapter: any) => adapter.protocol === 'Uniswap' && !adapter.outputWrapper.poolTokenSymbols)
     .map((adapter: any) => ({
       address: toChecksumAddress(adapter.id),
       outputWrapper: toChecksumAddress(adapter.outputWrapper.id),
@@ -35,13 +29,31 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       symbol: adapter.outputWrapper.underlyingSymbol,
     }))
 
-  const uniswapPoolAdapters = data.uniswapAdapters
-    .filter((adapter: any) => adapter.outputPoolWrapper)
-    .map(({ outputPoolWrapper, id }: any) => ({
+  const uniswapPoolAdapters = data.adapters
+    .filter((adapter: any) => adapter.protocol === 'Uniswap' && adapter.outputWrapper.poolTokenSymbols !== null)
+    .map(({ outputWrapper, id }: any) => ({
       address: toChecksumAddress(id),
-      outputWrapper: toChecksumAddress(outputPoolWrapper.id),
-      name: `Uniswap ${outputPoolWrapper.token0Name}-${outputPoolWrapper.token1Name} Pool`.replace('Wrapped Ether', 'Ether'),
-      symbol: `${outputPoolWrapper.token0Symbol}-${outputPoolWrapper.token1Symbol}`.replace('WETH', 'ETH'),
+      outputWrapper: toChecksumAddress(outputWrapper.id),
+      name: `Uniswap ${outputWrapper.poolTokenNames.join('-')} Pool`.replace('Wrapped Ether', 'Ether'),
+      symbol: outputWrapper.poolTokenSymbols.join('-').replace('WETH', 'ETH'),
+    }))
+
+  const balancerPoolAdapters = data.adapters
+    .filter((adapter: any) => adapter.protocol === 'Balancer' && adapter.outputWrapper.poolTokenSymbols !== null)
+    .map(({ outputWrapper, id }: any) => ({
+      address: toChecksumAddress(id),
+      outputWrapper: toChecksumAddress(outputWrapper.id),
+      name: `Balancer ${outputWrapper.poolTokenNames.join('-')} Pool`.replace('Wrapped Ether', 'Ether'),
+      symbol: outputWrapper.poolTokenSymbols.join('-').replace('WETH', 'ETH'),
+    }))
+
+  const balancerExitAdapters = data.adapters
+    .filter((adapter: any) => adapter.protocol === 'Balancer' && !adapter.outputWrapper.poolTokenSymbols)
+    .map((adapter: any) => ({
+      address: toChecksumAddress(adapter.id),
+      outputWrapper: toChecksumAddress(adapter.outputWrapper.id),
+      name: adapter.outputWrapper.underlyingName,
+      symbol: adapter.outputWrapper.underlyingSymbol,
     }))
 
   res.json({
@@ -50,21 +62,21 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         id: 'uniswap',
         name: 'Uniswap',
         description: 'Swap for other tokens',
-        excludeTag: 'erc20',
+        includeType: ['wrapper', 'uniswap-lp'],
         adapters: uniswapAdapters,
       },
       {
         id: 'uniswap-pool',
         name: 'Uniswap Pools',
         description: 'Provide liquidity & earn trading fees',
-        excludeTag: 'erc20',
+        includeType: ['wrapper'],
         adapters: uniswapPoolAdapters,
       },
       {
         id: 'aave',
         name: 'Aave Lending',
         description: 'Lend your tokens and earn interest',
-        excludeTag: 'erc20',
+        includeUnderlying: [],
         adapters: [
           {
             address: '0x81a6aea5ac2f59454116d701c0e297fdf3e4124e',
@@ -74,10 +86,23 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         ],
       },
       {
+        id: 'balancer',
+        name: 'Balancer Pools',
+        description: 'Provide liquidity & earn trading fees',
+        includeType: ['wrapper'],
+        adapters: balancerPoolAdapters,
+      },
+      {
+        id: 'balancer',
+        name: 'Balancer Exit',
+        description: 'Remove liquidity from Balancer pools',
+        includeType: ['balancer-lp'],
+        adapters: balancerExitAdapters,
+      },
+      {
         id: 'unwrap',
         name: 'Unwrap',
         description: 'Convert DeFi777 tokens back to ERC20 tokens',
-        includeTag: 'erc777',
         adapters: [
           {
             address: '0x6199F21467853Bea01187C5f093e37B0A578157f',
