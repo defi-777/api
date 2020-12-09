@@ -12,6 +12,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         underlyingName
         underlyingSymbol
         underlyingAddress
+        underlyingDecimals
         protocol
         yieldWrappers {
           id
@@ -50,12 +51,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       underlying: toChecksumAddress(token.underlyingAddress),
       type: token.protocol,
       yieldWrappers: token.yieldWrappers,
+      decimals: 18,
     })
 
     normalTokens.push({
       address: toChecksumAddress(token.underlyingAddress),
       symbol: token.underlyingSymbol || 'UNKNOWN',
       name: token.underlyingName || 'UNKNOWN',
+      decimals: token.underlyingDecimals,
     })
   }
 

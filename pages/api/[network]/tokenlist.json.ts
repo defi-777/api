@@ -13,6 +13,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         underlyingAddress
         underlyingName
         underlyingSymbol
+        underlyingDecimals
       }
     }`)
 
@@ -33,7 +34,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     address: toChecksumAddress(token.underlyingAddress),
     symbol: token.underlyingSymbol || 'UNKNOWN',
     name: token.underlyingName || 'UNKNOWN',
-    decimals: 18,
+    decimals: token.underlyingDecimals,
     logoURI: "https://raw.githubusercontent.com/Synthetixio/synthetix-assets/v2.0.3/snx/SNX.svg",
     tags: ["erc20"],
   }))
