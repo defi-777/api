@@ -1,7 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { toChecksumAddress } from 'ethereum-checksum-address'
 import { gqlQuery } from 'lib/graph'
-import { getNetworkId } from 'lib/networks'
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -24,8 +23,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         poolTokenSymbols
       }
     }`)
-
-  const chainId = getNetworkId(req.query.network as string)
 
   const wrapperTokens: any[] = []
   const normalTokens: any[] = []
