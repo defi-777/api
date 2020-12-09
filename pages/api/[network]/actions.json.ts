@@ -93,7 +93,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         adapters: balancerPoolAdapters,
       },
       {
-        id: 'balancer',
+        id: 'balancer-exit',
         name: 'Balancer Exit',
         description: 'Remove liquidity from Balancer pools',
         includeType: ['balancer-lp'],
