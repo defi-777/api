@@ -56,8 +56,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       underlying: toChecksumAddress(token.underlyingAddress),
       type: token.protocol,
       yieldWrappers: token.yieldWrappers.map((wrapper: any, i: number) => ({
-        ...wrapper,
-        yieldAdapter: token.yieldAdapters[i],
+        address: toChecksumAddress(wrapper.id),
+        underlyingAddress: toChecksumAddress(wrapper.underlyingAddress),
+        underlyingName: wrapper.underlyingName,
+        underlyingSymbol: wrapper.underlyingSymbol,
+        yieldAdapter: toChecksumAddress(token.yieldAdapters[i]),
       })),
       decimals: 18,
     })
