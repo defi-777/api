@@ -21,6 +21,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           underlyingSymbol
           underlyingAddress
         }
+        yieldAdapters
         poolTokenNames
         poolTokenSymbols
       }
@@ -54,7 +55,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       name,
       underlying: toChecksumAddress(token.underlyingAddress),
       type: token.protocol,
-      yieldWrappers: token.yieldWrappers,
+      yieldWrappers: token.yieldWrappers.map((wrapper: any, i: number) => ({
+        ...wrapper,
+        yieldAdapter: token.yieldAdapters[i],
+      })),
       decimals: 18,
     })
 
