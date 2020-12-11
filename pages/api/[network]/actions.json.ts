@@ -1,12 +1,13 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { toChecksumAddress } from 'ethereum-checksum-address'
 import { gqlQuery } from 'lib/graph'
-
-const wethByChain: { [chain: string]: string } = {
-  kovan: '0xd0A1e359811322D97991e03f863a0c30c2Cf029c',
-}
+import { aaveUnderlyingByNetwork } from 'data/aave'
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
+
+const wethByChain: { [network: string]: string } = {
+  kovan: '0xd0A1e359811322D97991e03f863a0c30c2Cf029c',
+}
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   res.setHeader("Access-Control-Allow-Origin", "*")
@@ -98,7 +99,22 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         name: 'Aave Lending',
         description: 'Lend your tokens and earn interest',
         includeType: ['erc777', 'eth'],
-        includeProtocol: [null],
+        // TODO index this
+        includeUnderlying: aaveUnderlyingByNetwork[network],
+        adapters: [
+          {
+            address: '0xf7D5a5177D84dFA0F79C78f1f6704199C713f01f',
+            name: 'Aave',
+            symbol: 'Aave',
+          },
+        ],
+      },
+      {
+        id: 'aave-exit',
+        name: 'Aave Withdrawal',
+        description: 'Withdraw your tokens from Aave',
+        includeType: ['erc777'],
+        includeProtocol: ['Aave'],
         adapters: [
           {
             address: '0xf7D5a5177D84dFA0F79C78f1f6704199C713f01f',

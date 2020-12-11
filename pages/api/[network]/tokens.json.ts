@@ -3,6 +3,16 @@ import { toChecksumAddress } from 'ethereum-checksum-address'
 import { gqlQuery } from 'lib/graph'
 import { getNetworkId } from 'lib/networks'
 
+function getProtocol(token: any) {
+  if (token.protocol) {
+    return token.protocol
+  }
+  if (token.underlyingName.indexOf('Aave interest bearing') === 0) {
+    return 'Aave'
+  }
+  return null
+}
+
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
 
@@ -54,7 +64,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       symbol,
       name,
       underlying: toChecksumAddress(token.underlyingAddress),
-      protocol: token.protocol,
+      protocol: getProtocol(token),
       yieldWrappers: token.yieldWrappers.map((wrapper: any, i: number) => ({
         address: toChecksumAddress(wrapper.id),
         underlyingAddress: toChecksumAddress(wrapper.underlyingAddress),
