@@ -54,7 +54,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       symbol,
       name,
       underlying: toChecksumAddress(token.underlyingAddress),
-      type: token.protocol,
+      protocol: token.protocol,
       yieldWrappers: token.yieldWrappers.map((wrapper: any, i: number) => ({
         address: toChecksumAddress(wrapper.id),
         underlyingAddress: toChecksumAddress(wrapper.underlyingAddress),
