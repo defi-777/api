@@ -174,8 +174,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       name: 'Compound',
       description: 'Lend your tokens and earn interest',
       includeType: ['erc777', 'eth'],
-      includeUnderlying: compoundAdapters[0].supportedWrappers.map((wrapper: any) =>
-        toChecksumAddress(wrapper.underlyingAddress)),
+      includeUnderlying: [
+        ZERO_ADDRESS,
+        ...compoundAdapters[0].supportedWrappers.map((wrapper: any) =>
+          toChecksumAddress(wrapper.underlyingAddress)),
+      ],
       adapters: [
         {
           address: toChecksumAddress(compoundAdapters[0].id),
