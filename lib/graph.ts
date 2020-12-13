@@ -12,7 +12,8 @@ export async function gqlQuery(network: string, query: string): Promise<any> {
 
   const { data, errors } = await request.json()
   if (errors) {
-    throw new Error(errors[0])
+    console.error(errors)
+    throw new Error(errors[0].message)
   }
   return data
 }

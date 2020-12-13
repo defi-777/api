@@ -189,6 +189,23 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     })
   }
 
+  // Todo split into enter/exit
+  const curveAdapters = data.adapters.filter((adapter: any) => adapter.protocol === 'Curve')
+  if (curveAdapters.length > 0) {
+    actions.push({
+      id: 'curve',
+      name: 'Curve',
+      description: 'Earn trading fees for stable-pair assets',
+      includeType: ['erc777'],
+      adapters: curveAdapters.map((adapter: any) => ({
+        address: toChecksumAddress(adapter.id),
+        outputWrapper: toChecksumAddress(adapter.outputWrapper.id),
+        name: adapter.outputWrapper.underlyingName,
+        symbol: adapter.outputWrapper.underlyingSymbol,
+      })),
+    })
+  }
+
   actions.push({
     id: 'unwrap',
     name: 'Unwrap',
