@@ -37,6 +37,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         protocol
         outputWrapper {
           id
+          protocol
           underlyingName
           underlyingSymbol
           poolTokenAddresses
@@ -190,15 +191,39 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     })
   }
 
-  // Todo split into enter/exit
   const curveAdapters = data.adapters.filter((adapter: any) => adapter.protocol === 'Curve')
   if (curveAdapters.length > 0) {
+    const entryAdapters = curveAdapters
+      .filter((adapter: any) => adapter.outputWrapper.protocol)
+      // Hide broken 3pool adapter
+      .filter((adapter: any) => adapter.outputWrapper.underlyingSymbol !== '3Crv')
     actions.push({
       id: 'curve',
       name: 'Curve',
       description: 'Earn trading fees for stable-pair assets',
       includeType: ['erc777'],
-      adapters: curveAdapters.map((adapter: any) => ({
+      includeUnderlying: Array.from(entryAdapters
+        .reduce((set: Set<string>, adapter: any) => {
+          adapter.outputWrapper.poolTokenAddresses.forEach((address: string) =>
+            set.add(toChecksumAddress(address)))
+          return set
+        }, new Set<string>())),
+      adapters: entryAdapters.map((adapter: any) => ({
+        address: toChecksumAddress(adapter.id),
+        outputWrapper: toChecksumAddress(adapter.outputWrapper.id),
+        name: adapter.outputWrapper.underlyingName,
+        symbol: adapter.outputWrapper.underlyingSymbol,
+        includeUnderlying: adapter.outputWrapper.poolTokenAddresses.map(toChecksumAddress),
+      })),
+    })
+
+    const exitAdapters = curveAdapters.filter((adapter: any) => !adapter.outputWrapper.protocol)
+    actions.push({
+      id: 'curve-exit',
+      name: 'Curve Withdrawal',
+      description: 'Remove your tokens from Curve pools',
+      includeProtocol: ['Curve'],
+      adapters: exitAdapters.map((adapter: any) => ({
         address: toChecksumAddress(adapter.id),
         outputWrapper: toChecksumAddress(adapter.outputWrapper.id),
         name: adapter.outputWrapper.underlyingName,
@@ -223,7 +248,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       ],
     })
     actions.push({
-      id: 'yearn',
+      id: 'yearn-exit',
       name: 'yEarn Withdrawal',
       description: 'Withdraw tokens from yEarn vaults',
       includeProtocol: ['yEarn'],
