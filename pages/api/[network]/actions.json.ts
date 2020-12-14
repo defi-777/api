@@ -6,6 +6,7 @@ const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 
 const wethByChain: { [network: string]: string } = {
   kovan: '0xd0A1e359811322D97991e03f863a0c30c2Cf029c',
+  mainnet: '0xc02aaA39b223fE8d0a0e5C4F27EAD9083C756cc2',
 }
 
 interface Adapter {
@@ -23,6 +24,14 @@ interface Action {
   includeProtocol?: (string | null)[]
   includeUnderlying?: string[]
   adapters: Adapter[]
+}
+
+function allAdapterPoolTokens(adapters: any[]): string[] {
+  return Array.from(adapters.reduce((set: Set<string>, adapter: any) => {
+    adapter.outputWrapper.poolTokenAddresses.forEach((address: string) =>
+      set.add(toChecksumAddress(address)))
+    return set
+  }, new Set<string>()))
 }
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
@@ -68,27 +77,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       symbol: outputWrapper.poolTokenSymbols.join('-').replace('WETH', 'ETH'),
     }))
 
-  const balancerPoolAdapters = data.adapters
-    .filter((adapter: any) => adapter.protocol === 'Balancer' && adapter.outputWrapper.poolTokenSymbols !== null)
-    .map(({ outputWrapper, id }: any) => ({
-      address: toChecksumAddress(id),
-      outputWrapper: toChecksumAddress(outputWrapper.id),
-      name: `Balancer ${outputWrapper.poolTokenNames.join('-')} Pool`.replace('Wrapped Ether', 'Ether'),
-      symbol: outputWrapper.poolTokenSymbols.join('-').replace('WETH', 'ETH'),
-      includeUnderlying: outputWrapper.poolTokenAddresses
-        .map(toChecksumAddress)
-        .map((address: string) => address === wethByChain[network] ? ZERO_ADDRESS : address),
-    }))
-
-  const balancerExitAdapters = data.adapters
-    .filter((adapter: any) => adapter.protocol === 'Balancer' && !adapter.outputWrapper.poolTokenSymbols)
-    .map((adapter: any) => ({
-      address: toChecksumAddress(adapter.id),
-      outputWrapper: toChecksumAddress(adapter.outputWrapper.id),
-      name: adapter.outputWrapper.underlyingName,
-      symbol: adapter.outputWrapper.underlyingSymbol,
-    }))
-
   const actions: Action[] = [
     {
       id: 'uniswap',
@@ -115,45 +103,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       adapters: uniswapPoolAdapters,
     },
   ]
-      description: 'Lend your tokens and earn interest',
-      includeType: ['erc777', 'eth'],
-      includeUnderlying: [
-        ZERO_ADDRESS,
-        ...compoundAdapters[0].supportedWrappers.map((wrapper: any) =>
-          toChecksumAddress(wrapper.underlyingAddress)),
-      ],
-      adapters: [
-        {
-          address: toChecksumAddress(compoundAdapters[0].id),
-          name: 'Compound',
-          symbol: 'Compound',
-        },
-      ],
-    },
-    {
-      id: 'balancer',
-      name: 'Balancer Pools',
-      description: 'Provide liquidity & earn trading fees',
-      includeType: ['erc777', 'eth'],
-      includeProtocol: [null],
-      adapters: balancerPoolAdapters,
-    },
-    {
-      id: 'balancer-exit',
-      name: 'Balancer Exit',
-      description: 'Remove liquidity from Balancer pools',
-      includeProtocol: ['Balancer'],
-      adapters: [
-        {
-          address: '0xC2576315CAd071Ed6A50e5e191f10D26f27B0AbE',
-          outputWrapper: ZERO_ADDRESS,
-          name: 'Ether',
-          symbol: 'ETH',
-        },
-        ...balancerExitAdapters,
-      ],
-    },
-  ]
 
   const compoundAdapters = data.adapters.filter((adapter: any) => adapter.protocol === 'Compound')
   if (compoundAdapters.length > 0) {
@@ -177,6 +126,52 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     })
   }
 
+  const balancerAdapters = data.adapters.filter((adapter: any) => adapter.protocol === 'Balancer')
+  if (balancerAdapters.length > 0) {
+    const entryAdapters = balancerAdapters.filter((adapter: any) => adapter.outputWrapper.protocol)
+    actions.push({
+      id: 'balancer',
+      name: 'Balancer Pools',
+      description: 'Provide liquidity & earn trading fees',
+      includeType: ['erc777', 'eth'],
+      includeUnderlying: [
+        ZERO_ADDRESS,
+        ...allAdapterPoolTokens(entryAdapters),
+      ],
+      adapters: entryAdapters.map(({ outputWrapper, id }: any) => ({
+          address: toChecksumAddress(id),
+          outputWrapper: toChecksumAddress(outputWrapper.id),
+          name: `Balancer ${outputWrapper.poolTokenNames.join('-')} Pool`.replace('Wrapped Ether', 'Ether'),
+          symbol: outputWrapper.poolTokenSymbols.join('-').replace('WETH', 'ETH'),
+          includeUnderlying: outputWrapper.poolTokenAddresses
+            .map(toChecksumAddress)
+            .map((address: string) => address === wethByChain[network] ? ZERO_ADDRESS : address),
+        })),
+    })
+
+    const exitAdapters = balancerAdapters.filter((adapter: any) => !adapter.outputWrapper.protocol)
+    actions.push({
+      id: 'balancer-exit',
+      name: 'Balancer Exit',
+      description: 'Remove liquidity from Balancer pools',
+      includeProtocol: ['Balancer'],
+      adapters: [
+        {
+          address: '0xC2576315CAd071Ed6A50e5e191f10D26f27B0AbE',
+          outputWrapper: ZERO_ADDRESS,
+          name: 'Ether',
+          symbol: 'ETH',
+        },
+        ...exitAdapters.map((adapter: any) => ({
+          address: toChecksumAddress(adapter.id),
+          outputWrapper: toChecksumAddress(adapter.outputWrapper.id),
+          name: adapter.outputWrapper.underlyingName,
+          symbol: adapter.outputWrapper.underlyingSymbol,
+        })),
+      ],
+    })
+  }
+
   const curveAdapters = data.adapters.filter((adapter: any) => adapter.protocol === 'Curve')
   if (curveAdapters.length > 0) {
     const entryAdapters = curveAdapters
@@ -188,12 +183,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       name: 'Curve',
       description: 'Earn trading fees for stable-pair assets',
       includeType: ['erc777'],
-      includeUnderlying: Array.from(entryAdapters
-        .reduce((set: Set<string>, adapter: any) => {
-          adapter.outputWrapper.poolTokenAddresses.forEach((address: string) =>
-            set.add(toChecksumAddress(address)))
-          return set
-        }, new Set<string>())),
+      includeUnderlying: allAdapterPoolTokens(entryAdapters),
       adapters: entryAdapters.map((adapter: any) => ({
         address: toChecksumAddress(adapter.id),
         outputWrapper: toChecksumAddress(adapter.outputWrapper.id),
