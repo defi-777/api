@@ -1,7 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { toChecksumAddress } from 'ethereum-checksum-address'
 import { gqlQuery } from 'lib/graph'
-import { aaveUnderlyingByNetwork } from 'data/aave'
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 
@@ -115,32 +114,19 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       includeProtocol: [null],
       adapters: uniswapPoolAdapters,
     },
-    {
-      id: 'aave',
-      name: 'Aave Lending',
+  ]
       description: 'Lend your tokens and earn interest',
       includeType: ['erc777', 'eth'],
-      // TODO index this
-      includeUnderlying: aaveUnderlyingByNetwork[network],
-      adapters: [
-        {
-          address: '0xf7D5a5177D84dFA0F79C78f1f6704199C713f01f',
-          name: 'Aave',
-          symbol: 'Aave',
-        },
+      includeUnderlying: [
+        ZERO_ADDRESS,
+        ...compoundAdapters[0].supportedWrappers.map((wrapper: any) =>
+          toChecksumAddress(wrapper.underlyingAddress)),
       ],
-    },
-    {
-      id: 'aave-exit',
-      name: 'Aave Withdrawal',
-      description: 'Withdraw your tokens from Aave',
-      includeType: ['erc777'],
-      includeProtocol: ['Aave'],
       adapters: [
         {
-          address: '0xf7D5a5177D84dFA0F79C78f1f6704199C713f01f',
-          name: 'Aave',
-          symbol: 'Aave',
+          address: toChecksumAddress(compoundAdapters[0].id),
+          name: 'Compound',
+          symbol: 'Compound',
         },
       ],
     },
