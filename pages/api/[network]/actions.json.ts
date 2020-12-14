@@ -214,7 +214,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       id: 'yearn',
       name: 'yEarn Vaults',
       description: 'Deposit tokens in yield-optimizing vaults',
-      includeUnderlying: yearnAdapters[0].supportedWrappers.filter((adapter: any) => !adapter.protocol),
+      includeUnderlying: yearnAdapters[0].supportedWrappers
+        .filter((wrapper: any) => !wrapper.protocol)
+        .map((wrapper: any) => toChecksumAddress(wrapper.underlyingAddress)),
       adapters: [
         {
           address: toChecksumAddress(yearnAdapters[0].id),
