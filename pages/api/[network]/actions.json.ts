@@ -45,6 +45,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         }
         supportedWrappers {
           underlyingAddress
+          protocol
         }
       }
     }`)
@@ -203,6 +204,36 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         name: adapter.outputWrapper.underlyingName,
         symbol: adapter.outputWrapper.underlyingSymbol,
       })),
+    })
+  }
+
+  const yearnAdapters = data.adapters.filter((adapter: any) => adapter.protocol === 'yEarn')
+  if (yearnAdapters.length > 0) {
+    actions.push({
+      id: 'yearn',
+      name: 'yEarn Vaults',
+      description: 'Deposit tokens in yield-optimizing vaults',
+      includeUnderlying: yearnAdapters[0].supportedWrappers.filter((adapter: any) => !adapter.protocol),
+      adapters: [
+        {
+          address: toChecksumAddress(yearnAdapters[0].id),
+          name: 'yEarn',
+          symbol: 'yEarn',
+        },
+      ],
+    })
+    actions.push({
+      id: 'yearn',
+      name: 'yEarn Withdrawal',
+      description: 'Withdraw tokens from yEarn vaults',
+      includeProtocol: ['yEarn'],
+      adapters: [
+        {
+          address: toChecksumAddress(yearnAdapters[0].id),
+          name: 'yEarn',
+          symbol: 'yEarn',
+        },
+      ],
     })
   }
 
