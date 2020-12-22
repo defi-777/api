@@ -20,6 +20,9 @@ interface Action {
   id: string
   name: string
   description: string
+  factory?: {
+    address: string
+  },
   includeType?: string[]
   includeProtocol?: (string | null)[]
   includeUnderlying?: string[]
@@ -84,6 +87,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       description: 'Swap for other tokens',
       includeType: ['erc777', 'eth'],
       includeProtocol: [null, 'Uniswap'],
+      factory: {
+        address: '0x8CD1a9Be80cB1827458AF6bB9ca5B0dAAAE36C1f',
+      },
       adapters: [
         {
           address: '0x2677a1c1e6BFaE4822AF9aA877E9549B664484fa',
